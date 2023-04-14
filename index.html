@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>图仓</title>
+  <!-- 引入 Bootstrap 样式 -->
+  <link rel="stylesheet" href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.1.1/css/bootstrap.min.css" />
+  <link rel="shortcut icon" href="//img.tucang.cc/api/image/show/64039e0dbc6d5af5138bc6bde8580544" type="image/x-icon">
+</head>
+
+<style>
+  .images {
+    width: 100%;
+    height: 400px;
+    border-radius: 5px;
+    border: 1px solid slategray;
+  }
+
+  .images img {
+    width: 100%;
+    height: 100%;
+  }
+</style>
+
+<body>
+  <div id="app">
+    <div class="container my-5">
+      <h1 class="text-center mb-5">图片上传到图仓</h1>
+      <div class="row">
+        <div class="col-md-12">
+          <div class="mb-3">
+            <input type="file" name="file" id="fileInput" class="form-control" @change="handleFileChange" />
+            <input type="text" disabled="true" class="form-control" v-model="form.status">
+            <input type="text" disabled="true" class="form-control" v-model="form.url">
+            <input type="text" disabled="true" class="form-control" v-model="form.markdownUrl">
+            <div class="images">
+              <img :src="form.showUrl" class="img-thumbnail" class="images" v-show="form.isShow">
+            </div>
+          </div>
+          <div class="d-grid gap-2">
+            <button type="button" class="btn btn-primary" :disabled="!selectedFile" @click="uploadFile">
+              {{ uploading ? '上传中...' : '上传文件' }}
+            </button>
+            <button type="button" class="btn btn-secondary" :disabled="uploading" @click="clearFile">清除文件</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- <textarea name="" id="" cols="30" rows="10"></textarea> -->
+
+  <script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.14/vue.js"></script>
+  <script src="https://cdn.bootcdn.net/ajax/libs/axios/0.19.2/axios.min.js"></script>
+  <script>
+    const app = new Vue({
+      el: '#app',
+      data: {
+        selectedFile: null,
+        uploading: false,
+        form: {
+          status: '上传状态：',
+          url: "url直链：",//显示直链
+          markdownUrl: 'markdown：',
+          showUrl: "",
+          isShow: false
+        },
+      },
+      methods: {
+        handleFileChange (event) {
+          this.selectedFile = event.target.files[0];
+        },
+        clearFile () {
+          this.selectedFile = null;
+          document.getElementById('fileInput').value = ''; // 清除文件选择
+          this.form.status = '上传状态：';
+          this.form.url = 'url直链：';
+          this.form.markdownUrl = 'markdown：';
+          this.form.isShow = false;
+          this.form.showUrl = url;
+        },
+
+
+
+        uploadFile () {
+          if (!this.selectedFile) {
+            alert('请选择需要上传的文件！');
+            return;
+          }
+
+
+          this.uploading = true;
+
+          const formData = new FormData();
+          formData.append('file', this.selectedFile);
+          const token = '166929663783310162d01ee224e5eb0db166d08e45d76';
+          const sync = true;
+          const type = 'webp';
+          axios
+            .post('https://tucang.cc/api/v1/upload?token=' + `${token}&&sync=${sync}&&type=${type}`, formData, {
+              headers: {
+                'Content-Type': 'multipart/form-data',
+              },
+            })
+            .then((response) => {
+              this.form.status = `图片上传成功！！！`
+              let { url } = response.data.data;
+              this.form.url = `url直链：${url}`;
+              this.form.markdownUrl = `markdown：![](${url})`;
+              this.form.showUrl = url;
+              this.form.isShow = true;
+            })
+            .catch((error) => {
+              this.form.status = `图片上传失败，请稍后重试！`;
+            })
+            .finally(() => {
+              this.uploading = false;
+            });
+        }
+      }
+    });
+  </script>
+</body>
+
+</html>
